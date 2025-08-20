@@ -22,6 +22,9 @@ public:
     
     // 获取探测到的障碍物点
     const std::vector<QPoint>& getDetectedObstacles() const;
+
+    //获取探测到的障碍物边缘
+    const std::vector<QPoint>& getDetctedEdges() const;
     
     // 获取探测区域点
     const std::vector<QPoint>& getDetectionArea() const;
@@ -44,6 +47,7 @@ private:
     float m_droneHeading;        // 无人机航向
     std::vector<QPoint> m_detectionArea;     // 探测区域点集
     std::vector<QPoint> m_detectedObstacles;  // 探测到的障碍物
+    std::vector<QPoint> m_detectedEdges; //探测到的边界
 };
 
 #endif // LIDAR_SENSOR_H

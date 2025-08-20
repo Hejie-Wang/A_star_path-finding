@@ -13,11 +13,13 @@ LidarDisplay::LidarDisplay(QWidget *parent)
 
 void LidarDisplay::updateDisplay(const std::vector<QPoint>& detectionArea, 
                                const std::vector<QPoint>& detectedObstacles,
+                               const std::vector<QPoint>& detectedEdges,
                                const QPoint& dronePos, 
                                float droneHeading)
 {
     m_detectionArea = detectionArea;
     m_detectedObstacles = detectedObstacles;
+    m_detectedEdges = detectedEdges;
     m_dronePos = dronePos;
     m_droneHeading = droneHeading;
     
@@ -55,9 +57,13 @@ void LidarDisplay::paintEvent(QPaintEvent *event)
                          static_cast<int>(point.y() * scale + offsetY));
     }
     
-    // 绘制探测到的障碍物（红色点）
+    // 绘制探测到的障碍物和边缘（红色点）
+    std::vector<QPoint> Obstacles_and_Edges;
+    Obstacles_and_Edges.insert(Obstacles_and_Edges.end(), m_detectedObstacles.begin(), m_detectedObstacles.end());
+    Obstacles_and_Edges.insert(Obstacles_and_Edges.end(), m_detectedEdges.begin(), m_detectedEdges.end());
+
     painter.setPen(QPen(Qt::red, 2));
-    for (const QPoint& point : m_detectedObstacles) {
+    for (const QPoint& point : Obstacles_and_Edges) {
         painter.drawPoint(static_cast<int>(point.x() * scale + offsetX), 
                          static_cast<int>(point.y() * scale + offsetY));
     }

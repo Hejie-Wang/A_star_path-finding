@@ -73,8 +73,18 @@ void LidarSensor::detectObstacles()
             
             // 检查是否为障碍物
             int mapValue = mapData.m_map[point.y() * mapData.m_mx + point.x()];
-            if (mapValue == RMAP_OBSTACLE || mapValue == RMAP_OBSTACLE_EDGE) {
+            if (mapValue == RMAP_OBSTACLE || mapValue == RMAP_OBSTACLE_UNDESCOVERED) {
+                // 添加到探测到的障碍物列表
                 m_detectedObstacles.push_back(point);
+                
+                // 更新地图状态为已探测障碍物
+                MapManager::updateMapPoint(point.x(), point.y(), RMAP_OBSTACLE_SCANNED);
+                // 新增：动态扩展新发现障碍物的边缘
+                MapManager::expandObstacleEdge(point.x(), point.y());
+
+                //新增：扩展障碍物边缘
+                if(mapValue == RMAP_OBSTACLE_EDGE)
+                m_detectedEdges.push_back(point);
             }
         }
     }
@@ -83,6 +93,11 @@ void LidarSensor::detectObstacles()
 const std::vector<QPoint>& LidarSensor::getDetectedObstacles() const
 {
     return m_detectedObstacles;
+}
+
+const std::vector<QPoint>& LidarSensor::getDetctedEdges() const
+{
+    return m_detectedEdges;
 }
 
 const std::vector<QPoint>& LidarSensor::getDetectionArea() const

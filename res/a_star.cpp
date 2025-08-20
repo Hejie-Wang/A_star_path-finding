@@ -124,7 +124,12 @@ bool AStar::isValid(int x, int y, const RMap& map) {
     
     // 检查是否是障碍物
     int idx = y * map.m_mx + x;
-    return map.m_map[idx] != RMAP_OBSTACLE && map.m_map[idx] != RMAP_OBSTACLE_EDGE;
+    int mapValue = map.m_map[idx];
+    
+    // 已探测障碍物和原始障碍物边缘都视为不可通行
+    // 未探测障碍物被视为可通行
+    return mapValue != RMAP_OBSTACLE_SCANNED &&
+           mapValue != RMAP_OBSTACLE_EDGE;
 }
 
 float AStar::calculateDistance(int x1, int y1, int x2, int y2) {

@@ -15,6 +15,7 @@ public:
     // 更新显示数据
     void updateDisplay(const std::vector<QPoint>& detectionArea, 
                       const std::vector<QPoint>& detectedObstacles,
+                      const std::vector<QPoint>& detectedEdges,
                       const QPoint& dronePos, 
                       float droneHeading);
 
@@ -24,6 +25,7 @@ protected:
 private:
     std::vector<QPoint> m_detectionArea;      // 探测区域
     std::vector<QPoint> m_detectedObstacles;   // 探测到的障碍物
+    std::vector<QPoint> m_detectedEdges;        //探测到的障碍物边缘
     QPoint m_dronePos;                         // 无人机位置
     float m_droneHeading;                      // 无人机航向
 };

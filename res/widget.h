@@ -42,9 +42,19 @@ private:
     int currentPathIndex;
     bool isAnimating;
 
+    // 新增：用于存储历史路径和初始起点
+    std::vector<Node*> m_historicalPath;
+    Node* m_initialStartPoint;
+
     LidarSensor m_lidarSensor;
     LidarDisplay *m_lidarDisplay;
     float m_droneHeading;      // 无人机航向
+    
+    // 检查当前路径是否与已探测障碍物相交
+    bool checkPathCollision();
+    
+    // 重新规划路径
+    void replanPath();
 
 };
 #endif // WIDGET_H
