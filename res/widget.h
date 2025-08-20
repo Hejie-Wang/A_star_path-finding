@@ -7,6 +7,8 @@
 #include <QTimer>
 #include "map_manager.h"
 #include "a_star.h"
+#include "lidar_sensor.h"    
+#include "lidar_display.h"  
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -31,6 +33,7 @@ protected:
 
 private slots:
     void updateAnimation();
+    void updateLidarDisplay();
 
 private:
     Ui::Widget *ui;
@@ -38,5 +41,10 @@ private:
     std::vector<Node*> path;
     int currentPathIndex;
     bool isAnimating;
+
+    LidarSensor m_lidarSensor;
+    LidarDisplay *m_lidarDisplay;
+    float m_droneHeading;      // 无人机航向
+
 };
 #endif // WIDGET_H

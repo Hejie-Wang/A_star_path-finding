@@ -18,6 +18,9 @@ set(SOURCES
     res/widget.cpp
     res/main.cpp
     res/a_star.cpp
+    res/lidar_sensor.cpp    
+    res/lidar_display.cpp   
+    res/drone_icon.cpp      
 )
 
 # 头文件
@@ -26,6 +29,9 @@ set(HEADERS
     res/map.h
     res/widget.h
     res/a_star.h
+    res/lidar_sensor.h      
+    res/lidar_display.h     
+    res/drone_icon.h        
 )
 
 set(FORMS

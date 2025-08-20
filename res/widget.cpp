@@ -2,6 +2,8 @@
 #include "ui_widget.h"
 #include <QTimer>
 #include <QPainter>
+#include "drone_icon.h"    
+#include "map_manager.h"    
 
 
 Widget::Widget(QWidget *parent)
@@ -10,6 +12,7 @@ Widget::Widget(QWidget *parent)
     , animationTimer(new QTimer(this))
     , currentPathIndex(0)
     , isAnimating(false)
+    , m_droneHeading(0.0f)  
 {
     ui->setupUi(this);
 
@@ -21,11 +24,24 @@ Widget::Widget(QWidget *parent)
 
     // 在Widget构造函数中连接按钮信号
     connect(ui->findPathButton, &QPushButton::clicked, this, &Widget::startPathfinding);
+
+    //初始化激光雷达
+    m_lidarSensor.init(120.0f, 30);  // 120度探测角度，30像素探测范围
+
+    // 新增：创建激光雷达显示窗口
+    m_lidarDisplay = new LidarDisplay();
+    m_lidarDisplay->setWindowTitle("激光雷达探测");
+    m_lidarDisplay->resize(400, 400);
+    m_lidarDisplay->show();
+
+    //连接激光雷达更新信号
+    connect(&m_lidarSensor, &LidarSensor::detectionUpdated, this, &Widget::updateLidarDisplay);
 }
 
 Widget::~Widget()
 {
     delete ui;
+    delete m_lidarDisplay;
     AStar::clearPath(path);
 }
 
@@ -91,16 +107,24 @@ void Widget::paintEvent(QPaintEvent *event) {
             int x = path[currentPathIndex]->x * scaleX + scaleX/2;
             int y = path[currentPathIndex]->y * scaleY + scaleY/2;
             
-            // 绘制飞机（用圆形表示）
-            painter.setBrush(QBrush(Qt::blue));
-            painter.setPen(QPen(Qt::darkBlue, 1));
-            painter.drawEllipse(x-5, y-5, 10, 10);
+        // 计算航向
+        if (currentPathIndex < path.size() - 1) {
+            int nextX = path[currentPathIndex+1]->x * scaleX + scaleX/2;
+            int nextY = path[currentPathIndex+1]->y * scaleY + scaleY/2;
+            m_droneHeading = DroneIcon::calculateHeading(QPoint(x, y), QPoint(nextX, nextY));
+        }
+        
+        // 更新激光雷达探测
+        m_lidarSensor.update(QPoint(path[currentPathIndex]->x, path[currentPathIndex]->y), m_droneHeading);
+        
+        // 绘制新的无人机图标
+        DroneIcon::drawDroneIcon(painter, QPoint(x, y), m_droneHeading);
         }
     }
 }
 
 void Widget::loadMapFile() {
-    if (MapManager::loadMap("E:/Qtproject/A_star/test_7.map")) {
+    if (MapManager::loadMap("E:/Qtproject/A_star/test_1.map")) {
         update(); // 触发重绘
     }
 }
@@ -135,6 +159,17 @@ void Widget::updateAnimation() {
         animationTimer->stop();
         isAnimating = false;
     }
+}
+
+// 新增：更新激光雷达显示
+void Widget::updateLidarDisplay()
+{
+    m_lidarDisplay->updateDisplay(
+        m_lidarSensor.getDetectionArea(),
+        m_lidarSensor.getDetectedObstacles(),
+        QPoint(path[currentPathIndex]->x, path[currentPathIndex]->y),
+        m_droneHeading
+    );
 }
 
 // void Widget::showMap(){
