@@ -7,7 +7,7 @@ LidarDisplay::LidarDisplay(QWidget *parent)
     , m_droneHeading(0.0f)
 {
     // 设置窗口标题和大小
-    setWindowTitle("激光雷达探测");
+    setWindowTitle("Lidar Detection");
     resize(400, 400);
 }
 

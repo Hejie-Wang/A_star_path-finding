@@ -31,7 +31,7 @@ Widget::Widget(QWidget *parent)
 
     // 新增：创建激光雷达显示窗口
     m_lidarDisplay = new LidarDisplay();
-    m_lidarDisplay->setWindowTitle("激光雷达探测");
+    m_lidarDisplay->setWindowTitle("A* Path Finding");
     m_lidarDisplay->resize(400, 400);
     m_lidarDisplay->show();
 
@@ -58,7 +58,7 @@ void Widget::paintEvent(QPaintEvent *event) {
     // 获取地图图像
     QImage mapImg = MapManager::renderMap();
     if (mapImg.isNull()) {
-        painter.drawText(rect(), Qt::AlignCenter, "地图未加载");
+        painter.drawText(rect(), Qt::AlignCenter, "Map Unload");
         return;
     }
     
