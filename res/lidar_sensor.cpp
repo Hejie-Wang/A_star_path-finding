@@ -28,8 +28,8 @@ void LidarSensor::update(const QPoint& dronePos, float droneHeading)
     // 检测障碍物
     detectObstacles();
     
-    // 发送探测更新信号
-    emit detectionUpdated(m_detectedObstacles);
+    // 发送探测更新信号，同时传递障碍物和边缘信息
+     emit detectionUpdated(m_detectedObstacles, m_detectedEdges);
 }
 
 void LidarSensor::calculateDetectionArea(const QPoint& dronePos, float droneHeading)
@@ -79,11 +79,11 @@ void LidarSensor::detectObstacles()
                 
                 // 更新地图状态为已探测障碍物
                 MapManager::updateMapPoint(point.x(), point.y(), RMAP_OBSTACLE_SCANNED);
+                
                 // 新增：动态扩展新发现障碍物的边缘
                 MapManager::expandObstacleEdge(point.x(), point.y());
-
-                //新增：扩展障碍物边缘
-                if(mapValue == RMAP_OBSTACLE_EDGE)
+            } else if (mapValue == RMAP_OBSTACLE_EDGE) {
+                // 将边缘点添加到检测列表
                 m_detectedEdges.push_back(point);
             }
         }

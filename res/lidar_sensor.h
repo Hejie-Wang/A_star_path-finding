@@ -31,7 +31,7 @@ public:
 
 signals:
     // 探测数据更新信号
-    void detectionUpdated(const std::vector<QPoint>& detectedObstacles);
+    void detectionUpdated(const std::vector<QPoint>& detectedObstacles, const std::vector<QPoint>& detectedEdges);
 
 private:
     // 计算探测区域

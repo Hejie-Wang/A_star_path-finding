@@ -92,36 +92,36 @@ void Widget::paintEvent(QPaintEvent *event) {
             painter.setPen(QPen(Qt::green, 2));
 
             //获取地图数据用于障碍物检查
-         const RMap& mapData = MapManager::getMapData();
+            const RMap& mapData = MapManager::getMapData();
         
-        // 绘制路径
-        for (size_t i = 1; i < path.size(); i++) {
-            //计算实际绘制坐标
-            int x1 = path[i-1]->x * scaleX + scaleX/2;
-            int y1 = path[i-1]->y * scaleY + scaleY/2;
-            int x2 = path[i]->x * scaleX + scaleX/2;
-            int y2 = path[i]->y * scaleY + scaleY/2;
-            painter.drawLine(x1, y1, x2, y2);
-        
-            // 检查路径点是否在障碍物边界上，如果是则调整位置
-            if (mapData.m_map && path[i]->y < mapData.m_my && path[i]->x < mapData.m_mx) {
-                int mapValue = mapData.m_map[path[i]->y * mapData.m_mx + path[i]->x];
-                if (mapValue == 1) { // 假设1表示障碍物
-                    // 调整位置，稍微偏移以避免重叠
-                    x2 += (path[i]->x > 0) ? -scaleX/4 : scaleX/4;
-                    y2 += (path[i]->y > 0) ? -scaleY/4 : scaleY/4;
+            // 绘制路径
+            for (size_t i = 1; i < path.size(); i++) {
+                //计算实际绘制坐标
+                int x1 = path[i-1]->x * scaleX + scaleX/2;
+                int y1 = path[i-1]->y * scaleY + scaleY/2;
+                int x2 = path[i]->x * scaleX + scaleX/2;
+                int y2 = path[i]->y * scaleY + scaleY/2;
+                painter.drawLine(x1, y1, x2, y2);
+            
+                // 检查路径点是否在障碍物边界上，如果是则调整位置
+                if (mapData.m_map && path[i]->y < mapData.m_my && path[i]->x < mapData.m_mx) {
+                    int mapValue = mapData.m_map[path[i]->y * mapData.m_mx + path[i]->x];
+                    if (mapValue == 1) { // 假设1表示障碍物
+                        // 调整位置，稍微偏移以避免重叠
+                        x2 += (path[i]->x > 0) ? -scaleX/4 : scaleX/4;
+                        y2 += (path[i]->y > 0) ? -scaleY/4 : scaleY/4;
+                    }
+                }
+
+                painter.drawLine(x1, y1, x2, y2);
+
+                if (i != 1 && i != path.size() - 1) {
+                    // 中间航路点用较小的黄色圆点
+                    painter.setBrush(QBrush(Qt::yellow));
+                    painter.setPen(QPen(Qt::darkYellow, 1));
+                    painter.drawEllipse(x1-2, y1-2, 4, 4);
                 }
             }
-
-            painter.drawLine(x1, y1, x2, y2);
-
-            if (i != 1 && i != path.size() - 1) {
-                // 中间航路点用较小的黄色圆点
-                painter.setBrush(QBrush(Qt::yellow));
-                painter.setPen(QPen(Qt::darkYellow, 1));
-                painter.drawEllipse(x1-2, y1-2, 4, 4);
-            }
-        }
         
         }
         
@@ -139,24 +139,24 @@ void Widget::paintEvent(QPaintEvent *event) {
             int x = path[currentPathIndex]->x * scaleX + scaleX/2;
             int y = path[currentPathIndex]->y * scaleY + scaleY/2;
             
-        // 计算航向
-        if (currentPathIndex < path.size() - 1) {
-            int nextX = path[currentPathIndex+1]->x * scaleX + scaleX/2;
-            int nextY = path[currentPathIndex+1]->y * scaleY + scaleY/2;
-            m_droneHeading = DroneIcon::calculateHeading(QPoint(x, y), QPoint(nextX, nextY));
-        }
-        
-        // 更新激光雷达探测
-        m_lidarSensor.update(QPoint(path[currentPathIndex]->x, path[currentPathIndex]->y), m_droneHeading);
-        
-        // 绘制新的无人机图标
-        DroneIcon::drawDroneIcon(painter, QPoint(x, y), m_droneHeading);
+            // 计算航向
+            if (currentPathIndex < path.size() - 1) {
+                int nextX = path[currentPathIndex+1]->x * scaleX + scaleX/2;
+                int nextY = path[currentPathIndex+1]->y * scaleY + scaleY/2;
+                m_droneHeading = DroneIcon::calculateHeading(QPoint(x, y), QPoint(nextX, nextY));
+            }
+            
+            // 更新激光雷达探测
+            m_lidarSensor.update(QPoint(path[currentPathIndex]->x, path[currentPathIndex]->y), m_droneHeading);
+            
+            // 绘制新的无人机图标
+            DroneIcon::drawDroneIcon(painter, QPoint(x, y), m_droneHeading);
         }
     }
 }
 
 void Widget::loadMapFile() {
-    if (MapManager::loadMap("E:/Qtproject/A_star/test_7.map")) {
+    if (MapManager::loadMap("E:/Qtproject/A_star/test_1.map")) {
         // 将所有障碍物标记为未探测状态
         const RMap& mapData = MapManager::getMapData();
         for (int y = 0; y < mapData.m_my; y++) {
@@ -180,11 +180,11 @@ void Widget::loadMapFile() {
 void Widget::startPathfinding() {
     // 清除之前的路径
     AStar::clearPath(path);
-    // 新增：如果是第一次寻路，则记录初始起点并清空历史路径
+    // 如果是第一次寻路，则记录初始起点并清空历史路径
     if (!m_initialStartPoint && !path.empty()) {
         m_initialStartPoint = new Node(path[0]->x, path[0]->y);
     }
-    // 新增：每次开始新的寻路时，清空历史路径
+    // 每次开始新的寻路时，清空历史路径
     AStar::clearPath(m_historicalPath);
     currentPathIndex = 0;
     
@@ -227,12 +227,12 @@ void Widget::updateAnimation() {
 }
 
 // 新增：更新激光雷达显示
-void Widget::updateLidarDisplay()
+void Widget::updateLidarDisplay(const std::vector<QPoint>& Obstacles, const std::vector<QPoint>& Edges)
 {
     m_lidarDisplay->updateDisplay(
         m_lidarSensor.getDetectionArea(),
-        m_lidarSensor.getDetectedObstacles(),
-        m_lidarSensor.getDetctedEdges(),
+        Obstacles,
+        Edges,
         QPoint(path[currentPathIndex]->x, path[currentPathIndex]->y),
         m_droneHeading
     );

@@ -17,7 +17,7 @@
    <item>
     <widget class="QPushButton" name="findPathButton">
      <property name="text">
-      <string>开始寻路</string>
+      <string>Start</string>
      </property>
     </widget>
    </item>

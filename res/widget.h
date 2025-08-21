@@ -33,7 +33,7 @@ protected:
 
 private slots:
     void updateAnimation();
-    void updateLidarDisplay();
+    void updateLidarDisplay(const std::vector<QPoint>& Obstacles, const std::vector<QPoint>& Edges);
 
 private:
     Ui::Widget *ui;

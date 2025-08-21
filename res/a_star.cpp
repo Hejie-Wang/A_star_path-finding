@@ -126,8 +126,7 @@ bool AStar::isValid(int x, int y, const RMap& map) {
     int idx = y * map.m_mx + x;
     int mapValue = map.m_map[idx];
     
-    // 已探测障碍物和原始障碍物边缘都视为不可通行
-    // 未探测障碍物被视为可通行
+    // 已探测障碍物和障碍物边缘都视为不可通行
     return mapValue != RMAP_OBSTACLE_SCANNED &&
            mapValue != RMAP_OBSTACLE_EDGE;
 }

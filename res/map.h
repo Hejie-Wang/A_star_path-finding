@@ -29,7 +29,10 @@ enum RMapItemType
     RMAP_START_POINT,				// 起点
     RMAP_END_POINT,					// 终点
     RMAP_CURRENT_POSITION,			// 当前点
-    RMAP_OBSTACLE_EDGE				// 障碍物扩展的点
+    RMAP_OBSTACLE_EDGE,				// 障碍物扩展的点
+    RMAP_OBSTACLE_EDGE_UNDESCOVERED,// 障碍物边缘未被发现
+    RMAP_OBSTACLE_EDGE_SCANNED      // 被扫描到的障碍物边缘
+
 };
 
 // 全局地图实例

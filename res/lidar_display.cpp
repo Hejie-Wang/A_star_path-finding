@@ -57,15 +57,17 @@ void LidarDisplay::paintEvent(QPaintEvent *event)
                          static_cast<int>(point.y() * scale + offsetY));
     }
     
-    // 绘制探测到的障碍物和边缘（红色点）
-    std::vector<QPoint> Obstacles_and_Edges;
-    Obstacles_and_Edges.insert(Obstacles_and_Edges.end(), m_detectedObstacles.begin(), m_detectedObstacles.end());
-    Obstacles_and_Edges.insert(Obstacles_and_Edges.end(), m_detectedEdges.begin(), m_detectedEdges.end());
-
+    // 障碍物用红色
     painter.setPen(QPen(Qt::red, 2));
-    for (const QPoint& point : Obstacles_and_Edges) {
+    for (const QPoint& point : m_detectedObstacles) {
         painter.drawPoint(static_cast<int>(point.x() * scale + offsetX), 
-                         static_cast<int>(point.y() * scale + offsetY));
+                        static_cast<int>(point.y() * scale + offsetY));
+    }
+    // 边缘用橙色
+    painter.setPen(QPen(QColor(255, 165, 0), 2));
+    for (const QPoint& point : m_detectedEdges) {
+        painter.drawPoint(static_cast<int>(point.x() * scale + offsetX), 
+                        static_cast<int>(point.y() * scale + offsetY));
     }
     
     // 绘制无人机（蓝色三角形）
