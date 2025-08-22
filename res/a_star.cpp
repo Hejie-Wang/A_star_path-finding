@@ -53,8 +53,17 @@ bool AStar::findPath(const RMap& map, std::vector<Node*>& path) {
             for (Node* node : openList) {
                 delete node;
             }
+
+            // 清理 closedList 中不属于最终路径的节点
             for (Node* node : closedList) {
-                if (node != startNode && node != currentNode) {
+                bool inPath = false;
+                for (Node* pathNode : path) {
+                    if (node == pathNode) {
+                        inPath = true;
+                        break;
+                    }
+                }
+                if (!inPath) {
                     delete node;
                 }
             }

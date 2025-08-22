@@ -1,4 +1,6 @@
 #include "widget.h"
+#include <QCoreApplication>
+#include <QDir>
 #include "ui_widget.h"
 #include <QTimer>
 #include <QPainter>
@@ -134,20 +136,27 @@ void Widget::paintEvent(QPaintEvent *event) {
             painter.drawEllipse(startX - 4, startY - 4, 8, 8);
         }
 
-        // 如果正在动画中，绘制当前位置
-        if (isAnimating && currentPathIndex < path.size()) {
-            int x = path[currentPathIndex]->x * scaleX + scaleX/2;
-            int y = path[currentPathIndex]->y * scaleY + scaleY/2;
+        // 如果正在动画中，并且路径有效，则绘制当前位置
+        if (isAnimating && !path.empty() && currentPathIndex < path.size()) {
+            //增加空指针检查
+            Node* currentNode = path[currentPathIndex];
+            if (!currentNode) return;
+            
+            int x = currentNode->x * scaleX + scaleX/2;
+            int y = currentNode->y * scaleY + scaleY/2;
             
             // 计算航向
             if (currentPathIndex < path.size() - 1) {
-                int nextX = path[currentPathIndex+1]->x * scaleX + scaleX/2;
-                int nextY = path[currentPathIndex+1]->y * scaleY + scaleY/2;
-                m_droneHeading = DroneIcon::calculateHeading(QPoint(x, y), QPoint(nextX, nextY));
+                Node* nextNode = path[currentPathIndex + 1];
+                if(nextNode){
+                    int nextX = nextNode->x * scaleX + scaleX/2;
+                    int nextY = nextNode->y * scaleY + scaleY/2;
+                    m_droneHeading = DroneIcon::calculateHeading(QPoint(x, y), QPoint(nextX, nextY));
+                }
             }
             
             // 更新激光雷达探测
-            m_lidarSensor.update(QPoint(path[currentPathIndex]->x, path[currentPathIndex]->y), m_droneHeading);
+            m_lidarSensor.update(QPoint(currentNode->x, currentNode->y), m_droneHeading);
             
             // 绘制新的无人机图标
             DroneIcon::drawDroneIcon(painter, QPoint(x, y), m_droneHeading);
@@ -156,7 +165,17 @@ void Widget::paintEvent(QPaintEvent *event) {
 }
 
 void Widget::loadMapFile() {
-    if (MapManager::loadMap("E:/Qtproject/A_star/test_1.map")) {
+    // 获取应用程序可执行文件所在的目录
+    QDir appDir(QCoreApplication::applicationDirPath());
+
+    // 为了在开发环境（build目录）和部署环境中都能工作，我们向上查找项目根目录
+    // 通过查找一个特定的标记文件，例如 'CMakeLists.txt'
+    while (!appDir.exists("CMakeLists.txt") && appDir.cdUp());
+
+    // 构建地图文件的绝对路径
+    QString mapPath = appDir.absoluteFilePath("maps/test_1.map");
+
+    if (MapManager::loadMap(mapPath.toStdString().c_str())) {
         // 将所有障碍物标记为未探测状态
         const RMap& mapData = MapManager::getMapData();
         for (int y = 0; y < mapData.m_my; y++) {
@@ -178,21 +197,21 @@ void Widget::loadMapFile() {
 
 //寻路算法入口
 void Widget::startPathfinding() {
-    // 清除之前的路径
+    // 清除之前的路径和历史
     AStar::clearPath(path);
-    // 如果是第一次寻路，则记录初始起点并清空历史路径
-    if (!m_initialStartPoint && !path.empty()) {
-        m_initialStartPoint = new Node(path[0]->x, path[0]->y);
-    }
-    // 每次开始新的寻路时，清空历史路径
     AStar::clearPath(m_historicalPath);
     currentPathIndex = 0;
-    
+
     // 获取地图数据
     const RMap& mapData = MapManager::getMapData();
     
     // 使用A*算法寻找路径
     if (AStar::findPath(mapData, path)) {
+        // 如果是第一次寻路，并且路径有效，则记录初始起点
+        if (!m_initialStartPoint && !path.empty() && path[0]) {
+            m_initialStartPoint = new Node(path[0]->x, path[0]->y);
+        }
+        
         // 找到路径，开始动画
         isAnimating = true;
         animationTimer->start();
@@ -229,6 +248,10 @@ void Widget::updateAnimation() {
 // 新增：更新激光雷达显示
 void Widget::updateLidarDisplay(const std::vector<QPoint>& Obstacles, const std::vector<QPoint>& Edges)
 {
+    // 增加路径和索引的有效性检查，防止崩溃
+    if (path.empty() || currentPathIndex >= path.size() || !path[currentPathIndex]) {
+        return;
+    }
     m_lidarDisplay->updateDisplay(
         m_lidarSensor.getDetectionArea(),
         Obstacles,
@@ -249,8 +272,11 @@ bool Widget::checkPathCollision()
     
     // 检查从当前位置到路径终点的所有点
     for (size_t i = currentPathIndex; i < path.size(); i++) {
-        int x = path[i]->x;
-        int y = path[i]->y;
+        //增加空指针检查
+        Node* node = path[i];
+        if (!node) continue;
+        int x = node->x;
+        int y = node->y;
         
         // 检查是否为已探测障碍物
         if (MapManager::isDetectedObstacle(x, y)) {
@@ -279,14 +305,17 @@ bool Widget::checkPathCollision()
 void Widget::replanPath()
 {
     // 保存当前位置作为新的起点
-    if (currentPathIndex < path.size()) {
+    if (!path.empty() && currentPathIndex < path.size()) {
+        Node* currentNode = path[currentPathIndex];
+        if (!currentNode) return;
         // 新增：将已经走过的路径段保存到历史路径中
         for (size_t i = 0; i <= currentPathIndex; ++i) {
-            m_historicalPath.push_back(new Node(path[i]->x, path[i]->y));
+             if(path[i])
+                m_historicalPath.push_back(new Node(path[i]->x, path[i]->y));
         }
 
-        int currentX = path[currentPathIndex]->x;
-        int currentY = path[currentPathIndex]->y;
+        int currentX = currentNode->x;
+        int currentY = currentNode->y;
 
         //获取地图数据
         const RMap& mapData = MapManager::getMapData();
